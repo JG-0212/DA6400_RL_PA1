@@ -9,7 +9,7 @@ import torch.nn.functional as F
 class QNetwork(nn.Module):
 
     def __init__(self, state_size, action_size, seed, fc1_units=128, fc2_units=64):
-        super(QNetwork, self).__init__()
+        super().__init__()
         self.seed = torch.manual_seed(seed)
         self.fc1 = nn.Linear(state_size, fc1_units)
         self.fc2 = nn.Linear(fc1_units, fc2_units)
@@ -49,10 +49,10 @@ class ReplayBuffer:
             np.vstack([e.action for e in experiences if e is not None])).long().to(self.device)
         rewards = torch.from_numpy(
             np.vstack([e.reward for e in experiences if e is not None])).float().to(self.device)
-        next_states = torch.from_numpy(np.vstack(
-            [e.next_state for e in experiences if e is not None])).float().to(self.device)
-        dones = torch.from_numpy(np.vstack(
-            [e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(self.device)
+        next_states = torch.from_numpy(
+            np.vstack([e.next_state for e in experiences if e is not None])).float().to(self.device)
+        dones = torch.from_numpy(
+            np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(self.device)
 
         return (states, actions, rewards, next_states, dones)
 
