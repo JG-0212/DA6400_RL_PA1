@@ -18,13 +18,13 @@ class QLearningAgent():
         self.BUFFER_SIZE = int(1e5)  # replay buffer size
         self.BATCH_SIZE = 64         # minibatch size
         self.GAMMA = 0.99            # discount factor
-        self.LR = 5e-4               # learning rate
+        self.LR = 1e-3              # learning rate
         # how often to update the network (When Q target is present)
         self.UPDATE_EVERY = 20
 
         self.eps_start = 1.0
         self.eps_end = 0.01
-        self.eps_decay = 0.0005
+        self.eps_decay = 0.9995
 
         self.eps = self.eps_start
 
@@ -56,7 +56,7 @@ class QLearningAgent():
         self.eps = self.eps_start
 
     def update_agent_parameters(self):
-        self.eps = max(self.eps_end, self.eps - self.eps_decay)
+        self.eps = max(self.eps_end, self.eps*self.eps_decay)
 
     def step(self, state, action, reward, next_state, done):
         ''' Save experience in replay memory '''

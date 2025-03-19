@@ -18,13 +18,14 @@ def process_training_info(scores, termination, truncation):
 def main():
 
     env = gym.make('CartPole-v1')
+
     agent = QLearningAgent(state_size=env.observation_space.shape[0],
                            action_size=env.action_space.n,
                            seed=0,
                            device='cpu')
 
     results = training(env, agent,
-                       n_episodes=3000,
+                       n_episodes=5000,
                        process_training_info=process_training_info)
 
     plt.figure()
