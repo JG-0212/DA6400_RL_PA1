@@ -31,7 +31,7 @@ class DQNAgent:
         ''' Agent Environment Interaction '''
         self.state_space = state_space
         self.action_space = action_space
-        self.state_size = self.state_space.observation_space.shape[0]
+        self.state_size = self.state_space.shape[0]
         self.action_size = self.action_space.n
         self.seed = random.seed(seed)
 
@@ -148,7 +148,7 @@ class QTableAgent:
         ''' Agent Environment Interaction '''
         self.state_space = state_space
         self.action_space = action_space
-        self.state_size = self.state_space.observation_space.shape[0]
+        self.state_size = self.state_space.shape[0]
         self.action_size = self.action_space.n
         self.seed = random.seed(seed)
 

@@ -5,6 +5,20 @@ from collections import deque
 
 
 def training(env, agent, n_episodes=10000, process_training_info=lambda *args, **kwargs: (False, {})):
+    """
+    To train an agent in the given environment.
+
+    Args:
+        - env: The environment for training.
+        - agent: An agent with `.step()`, `.act()`, and `.update_agent_parameters()`.
+        - n_episodes (int, optional): Number of training episodes. Defaults to 10000.
+        - process_training_info (function, optional): Runs after each episode.
+            - First return value must be a `bool` for early stopping.  
+            - Second return value must be a `dict` to update the progress bar's postfix.
+
+    Returns:
+        - dict: Summary of the training process.
+    """
 
     begin_time = datetime.datetime.now()
 
