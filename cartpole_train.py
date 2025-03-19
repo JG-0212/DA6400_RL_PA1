@@ -1,8 +1,9 @@
 import gymnasium as gym
+from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
 import numpy as np
 
-from scripts.agents import QLearningAgent
+from scripts.agents import DQNAgent, QTableAgent
 from scripts.training import training
 
 
@@ -21,14 +22,26 @@ def process_training_info(agent, scores, termination, truncation):
         return False, {}
 
 
+def episode_trigger(x):
+    if x % 1000 == 0:
+        return True
+    return False
+
+
 def main():
 
-    env = gym.make('CartPole-v1')
+    env = gym.make('CartPole-v1', render_mode="rgb_array")
+    env = RecordVideo(
+        env,
+        video_folder="backups/cartpole-visualizations",
+        name_prefix="eval",
+        episode_trigger=episode_trigger
+    )
 
-    agent = QLearningAgent(state_size=env.observation_space.shape[0],
-                           action_size=env.action_space.n,
-                           seed=0,
-                           device='cpu')
+    agent = DQNAgent(state_space=env.observation_space,
+                     action_space=env.action_space,
+                     seed=0,
+                     device='cpu')
 
     results = training(env, agent,
                        n_episodes=5000,
