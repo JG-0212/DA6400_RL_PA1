@@ -4,7 +4,7 @@ import numpy as np
 from collections import deque
 
 
-def training(env, agent, n_episodes=10000, process_training_info=lambda x, y, z: (False, {})):
+def training(env, agent, n_episodes=10000, process_training_info=lambda *args, **kwargs: (False, {})):
 
     begin_time = datetime.datetime.now()
 
@@ -32,9 +32,12 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda x, y, z:
         history_termination.append(terminated)
         history_truncation.append(truncated)
 
-        early_stop, info = process_training_info(history_scores,
-                                                 history_termination,
-                                                 history_truncation)
+        early_stop, info = process_training_info(
+            agent,
+            history_scores,
+            history_termination,
+            history_truncation
+        )
 
         if info:
             progress_bar.set_postfix(info)
