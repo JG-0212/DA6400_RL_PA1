@@ -15,11 +15,10 @@ def moving_average(arr, n=100):
 
 def process_training_info(agent, scores, termination, truncation):
 
-    if len(scores) % 100 == 0:
-        mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
-        return False, {"Mean Score": mean_scores}
-    else:
-        return False, {}
+    mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
+    if mean_scores >= 475:
+        return True, {"Mean Score": mean_scores}
+    return False, {"Mean Score": mean_scores}
 
 
 def episode_trigger(x):
@@ -51,6 +50,8 @@ def main():
     plt.plot(results["scores"])
     plt.plot(moving_average(results["scores"]))
     plt.show()
+
+    env.close()
 
 
 if __name__ == '__main__':

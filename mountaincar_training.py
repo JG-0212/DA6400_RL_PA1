@@ -9,11 +9,10 @@ from scripts.training import training
 
 def process_training_info(agent, scores, termination, truncation):
 
-    if len(scores) % 100 == 0:
-        prev_scores = np.array(scores[max(0, len(scores)-100):])
-        return False, {"Mean Score": prev_scores.mean()}
-    else:
-        return False, {}
+    mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
+    if mean_scores <= -110:
+        return True, {"Mean Score": mean_scores}
+    return False, {"Mean Score": mean_scores}
 
 
 def episode_trigger(x):
@@ -54,6 +53,9 @@ def main():
     ma = np.max(agent.QTable)
     plt.imshow((agent.QTable - mi)/(ma-mi))
     plt.show()
+
+    env.close()
+
 
 if __name__ == '__main__':
     main()
