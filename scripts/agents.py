@@ -8,9 +8,9 @@ import torch.nn.functional as F
 from scripts.network import ReplayBuffer, QNetwork
 
 
-class QLearningAgent():
+class DQNAgent:
 
-    def __init__(self, state_size, action_size, seed, device='cpu'):
+    def __init__(self, state_space, action_space, seed, device='cpu'):
 
         self.device = device
 
@@ -29,21 +29,27 @@ class QLearningAgent():
         self.tau = self.tau_start
 
         ''' Agent Environment Interaction '''
-        self.state_size = state_size
-        self.action_size = action_size
+        self.state_space = state_space
+        self.action_space = action_space
+        self.state_size = self.state_space.observation_space.shape[0]
+        self.action_size = self.action_space.n
         self.seed = random.seed(seed)
 
         ''' Q-Network '''
         self.qnetwork_local = QNetwork(
-            state_size, action_size, seed).to(self.device)
+            self.state_size,
+            self.action_size, seed).to(self.device)
         self.qnetwork_target = QNetwork(
-            state_size, action_size, seed).to(self.device)
+            self.state_size,
+            self.action_size, seed).to(self.device)
         self.optimizer = optim.Adam(
-            self.qnetwork_local.parameters(), lr=self.LR)
+            self.qnetwork_local.parameters(),
+            lr=self.LR
+        )
 
         ''' Replay memory '''
         self.memory = ReplayBuffer(
-            action_size, self.BUFFER_SIZE, self.BATCH_SIZE, seed)
+            self.action_size, self.BUFFER_SIZE, self.BATCH_SIZE, seed)
 
         ''' Initialize time step (for updating every UPDATE_EVERY steps)           -Needed for Q Targets '''
         self.t_step = 0
@@ -83,7 +89,6 @@ class QLearningAgent():
             action_values = self.qnetwork_local(state)
         self.qnetwork_local.train()
 
-        ''' Softmax action selection '''
         action_values_np = action_values.cpu().data.numpy().squeeze(0)
 
         # Subtracting maximum Q value from all Q values while computing
@@ -124,3 +129,84 @@ class QLearningAgent():
             param.grad.data.clamp_(-1, 1)
 
         self.optimizer.step()
+
+
+class QTableAgent:
+
+    def __init__(self, state_space, action_space, seed):
+        '''Hyperparameters'''
+        self.GAMMA = 0.99            # discount factor
+        self.LR = 0.1              # learning rate
+        self.NUM_ELEMENTS = 50
+
+        self.tau_start = 1
+        self.tau_end = 0.01
+        self.tau_decay = 0.001
+
+        self.tau = self.tau_start
+
+        ''' Agent Environment Interaction '''
+        self.state_space = state_space
+        self.action_space = action_space
+        self.state_size = self.state_space.observation_space.shape[0]
+        self.action_size = self.action_space.n
+        self.seed = random.seed(seed)
+
+        self.discrete_state_size = np.array(
+            [self.NUM_ELEMENTS]*self.state_size
+        )
+
+        self.discrete_state_element_size = (
+            (self.state_space.high
+             - self.state_space.low)
+            / self.discrete_state_size
+        )
+
+        self.QTable_size = self.discrete_state_size + [self.action_size]
+        self.QTable = np.ones(self.QTable_size)
+
+    def update_hyperparameters(self, **kwargs):
+        '''To be changed only at the start of training'''
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+        self.tau = self.tau_start
+
+    def update_agent_parameters(self):
+        self.tau = max(self.tau_end, self.tau - self.tau_decay)
+
+    def get_discrete_state(self, state):
+        discrete_state = ((state - self.state_space.low)
+                          / self.discrete_state_element_size)
+        return tuple(discrete_state.astype(np.int32))
+
+    def step(self, state, action, reward, next_state, done):
+        if not done:
+
+            discrete_state = self.get_discrete_state(state)
+            discrete_next_state = self.get_discrete_state(next_state)
+
+            discrete_state_action = discrete_state + (action,)
+
+            q_next_sa = np.max(self.QTable[discrete_next_state])
+            q_sa = self.QTable[discrete_state_action]
+
+            self.QTable[discrete_state_action] = (
+                q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
+            )
+
+    def act(self, state):
+
+        discrete_state = self.get_discrete_state(state)
+
+        action_values = self.QTable[discrete_state]
+
+        # Subtracting maximum Q value from all Q values while computing
+        # softmax to obtain higher numerical stability and prevent overflows.
+        softmax_Q = np.exp((action_values - np.max(action_values))/self.tau)
+        softmax_Q /= np.sum(softmax_Q)
+
+        # Select action based on the probability distribution obtained from softmax
+        softmax_action = np.random.choice(a=np.arange(self.action_size),
+                                          p=softmax_Q)
+        return softmax_action, action_values
