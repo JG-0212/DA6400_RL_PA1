@@ -6,11 +6,17 @@ from scripts.agents import QLearningAgent
 from scripts.training import training
 
 
-def process_training_info(scores, termination, truncation):
+def moving_average(arr, n=100):
+    csum = np.cumsum(arr)
+    csum[n:] = csum[n:] - csum[:-n]
+    return csum[n - 1:] / n
+
+
+def process_training_info(agent, scores, termination, truncation):
 
     if len(scores) % 100 == 0:
-        prev_scores = np.array(scores[max(0, len(scores)-100):])
-        return False, {"Mean Score": prev_scores.mean()}
+        mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
+        return False, {"Mean Score": mean_scores}
     else:
         return False, {}
 
@@ -30,6 +36,7 @@ def main():
 
     plt.figure()
     plt.plot(results["scores"])
+    plt.plot(moving_average(results["scores"]))
     plt.show()
 
 

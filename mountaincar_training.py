@@ -6,7 +6,7 @@ from scripts.agents import QLearningAgent
 from scripts.training import training
 
 
-def process_training_info(scores, termination, truncation):
+def process_training_info(agent, scores, termination, truncation):
 
     if len(scores) % 100 == 0:
         prev_scores = np.array(scores[max(0, len(scores)-100):])
