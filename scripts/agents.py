@@ -141,7 +141,7 @@ class QTableAgent:
 
         self.tau_start = 1
         self.tau_end = 0.01
-        self.tau_decay = 0.001
+        self.tau_decay = 0.995
 
         self.tau = self.tau_start
 
@@ -162,7 +162,7 @@ class QTableAgent:
             / self.discrete_state_size
         )
 
-        self.QTable_size = self.discrete_state_size + [self.action_size]
+        self.QTable_size = np.append(self.discrete_state_size, self.action_size)
         self.QTable = np.ones(self.QTable_size)
 
     def update_hyperparameters(self, **kwargs):
@@ -205,8 +205,8 @@ class QTableAgent:
         # softmax to obtain higher numerical stability and prevent overflows.
         softmax_Q = np.exp((action_values - np.max(action_values))/self.tau)
         softmax_Q /= np.sum(softmax_Q)
-
         # Select action based on the probability distribution obtained from softmax
         softmax_action = np.random.choice(a=np.arange(self.action_size),
                                           p=softmax_Q)
+        
         return softmax_action, action_values

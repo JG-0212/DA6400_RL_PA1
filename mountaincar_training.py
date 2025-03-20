@@ -10,7 +10,7 @@ from scripts.training import training
 def process_training_info(agent, scores, termination, truncation):
 
     mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
-    if mean_scores <= -110:
+    if mean_scores >= -110:
         return True, {"Mean Score": mean_scores}
     return False, {"Mean Score": mean_scores}
 
