@@ -31,21 +31,16 @@ def main():
         episode_trigger=episode_trigger
     )
 
-    # agent = DQNAgent(state_space=env.observation_space,
-    #                        action_space=env.action_space,
-    #                        seed=0,
-    #                        device='cpu')
-
     agent = QTableAgent(state_space=env.observation_space,
                         action_space=env.action_space,
                         seed=0
                         )
-    
+
     hyperparameters = {
-        "NUM_TILES_PER_FEATURE": [10,10],
+        "NUM_TILES_PER_FEATURE": [10, 10],
         "NUM_TILINGS": 16
     }
-    
+
     agent.update_hyperparameters(**hyperparameters)
 
     results = training(env, agent,

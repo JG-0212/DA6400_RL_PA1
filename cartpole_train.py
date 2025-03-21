@@ -1,10 +1,25 @@
+from typing import Any, Callable
 import gymnasium as gym
 from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
 import numpy as np
 
-from scripts.agents import DQNAgent, QTableAgent
+from scripts.agents import QTableAgent
 from scripts.training import training
+
+
+class ObsWrapper(gym.ObservationWrapper):
+
+    def __init__(self, env: gym.Env, f: Callable[[Any], Any]):
+        super().__init__(env)
+        assert callable(f)
+        self.f = f
+
+        self.observation_space.high = f(env.observation_space.high)
+        self.observation_space.low = f(env.observation_space.low)
+
+    def observation(self, observation):
+        return self.f(observation)
 
 
 def moving_average(arr, n=100):
@@ -30,6 +45,8 @@ def episode_trigger(x):
 def main():
 
     env = gym.make('CartPole-v1', render_mode="rgb_array")
+    env = ObsWrapper(env,
+                     lambda obs: np.clip(obs, -4, 4))
     env = RecordVideo(
         env,
         video_folder="backups/cartpole-visualizations",
@@ -37,13 +54,25 @@ def main():
         episode_trigger=episode_trigger
     )
 
-    agent = DQNAgent(state_space=env.observation_space,
-                     action_space=env.action_space,
-                     seed=0,
-                     device='cpu')
+    agent = QTableAgent(state_space=env.observation_space,
+                        action_space=env.action_space,
+                        seed=0
+                        )
+
+    hyperparameters = {
+        "NUM_TILES_PER_FEATURE": [10, 10, 10, 10],
+        "NUM_TILINGS": 1,
+        "GAMMA": 1,
+        "LR":0.01,
+        "tau_start": 5000,
+        "tau_end": 1,
+        "tau_decay": 4900.0/50000
+    }
+
+    agent.update_hyperparameters(**hyperparameters)
 
     results = training(env, agent,
-                       n_episodes=5000,
+                       n_episodes=100000,
                        process_training_info=process_training_info)
 
     plt.figure()
