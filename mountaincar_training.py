@@ -40,6 +40,14 @@ def main():
                         action_space=env.action_space,
                         seed=0
                         )
+    
+    hyperparameters = {
+        "NUM_TILES_PER_FEATURE": [10,10],
+        "NUM_TILINGS": 16
+    }
+    
+    agent.update_hyperparameters(**hyperparameters)
+
     results = training(env, agent,
                        n_episodes=25000,
                        process_training_info=process_training_info)
@@ -51,7 +59,9 @@ def main():
     plt.figure()
     mi = np.min(agent.QTable)
     ma = np.max(agent.QTable)
-    plt.imshow((agent.QTable - mi)/(ma-mi))
+    im = (agent.QTable - mi)/(ma-mi)
+    im = np.reshape(im, [16, 10, 10, 3])
+    plt.imshow(im[0])
     plt.show()
 
     env.close()

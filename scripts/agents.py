@@ -21,14 +21,18 @@ class QTableAgent:
         self.tau_end = 0.01
         self.tau_decay = 0.995
 
-        self.tau = self.tau_start
-
         ''' Agent Environment Interaction '''
         self.state_space = state_space
         self.action_space = action_space
         self.state_size = self.state_space.shape[0]
         self.action_size = self.action_space.n
         self.seed = random.seed(seed)
+        
+        self.reset()
+
+    def reset(self):
+
+        self.tau = self.tau_start
 
         self.tile_coder = TileCoder(
             num_tiles_per_feature=self.NUM_TILES_PER_FEATURE,
@@ -42,12 +46,13 @@ class QTableAgent:
 
         self.QTable = np.ones(self.QTable_size)
 
+
     def update_hyperparameters(self, **kwargs):
         '''To be changed only at the start of training'''
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        self.tau = self.tau_start
+        self.reset()
 
     def update_agent_parameters(self):
         self.tau = max(self.tau_end, self.tau - self.tau_decay)
