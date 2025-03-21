@@ -3,7 +3,7 @@ from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
 import numpy as np
 
-from scripts.agents import DQNAgent, QTableAgent
+from scripts.agents import QTableAgent
 from scripts.training import training
 
 

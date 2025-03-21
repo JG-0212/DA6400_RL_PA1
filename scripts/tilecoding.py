@@ -5,27 +5,30 @@ import numpy as np
 
 class TileCoder:
 
-    def __init__(self, num_tiles_per_dim,  num_tilings, lower_lim, upper_lim):
+    def __init__(self, num_tiles_per_feature,  num_tilings, lower_lim, upper_lim):
         """
         To tile-code continuous states into discrete states
 
         Args:
-            - num_tiles_per_dim (ArrayLike): Number of divisions for discretizing each dimension.
+            - num_tiles_per_feature (ArrayLike): Number of divisions for discretizing each dimension.
             - num_tilings (int): Total number of overlapping tiling grids.
             - lower_lim (ArrayLike): Lower bounds of the state space.
             - upper_lim (ArrayLike): Upper bounds of the state space.
         """
 
-        self.num_tiles_per_dim = np.array(num_tiles_per_dim, dtype=np.int32)
+        self.num_tiles_per_feature = np.array(num_tiles_per_feature, 
+                                              dtype=np.int32)
         self.num_tilings = num_tilings
 
         self.lower_lim = np.array(lower_lim)
         self.upper_lim = np.array(upper_lim)
         self.range = self.upper_lim - self.lower_lim
 
-        self.feature_dim = self.num_tiles_per_dim.shape[0]
+        self.feature_dim = self.num_tiles_per_feature.shape[0]
 
-        self.tile_width = self.range/self.num_tiles_per_dim
+        self.tile_width = self.range/self.num_tiles_per_feature
+        self.base_tile_index = np.prod(
+            self.num_tiles_per_feature)*np.arange(self.num_tilings)
 
         # Computing vectors to offset the tilings
         # Miller and Glanz (1996) recommend using displacement vectors consisting of the first odd integers.
@@ -36,7 +39,7 @@ class TileCoder:
                                  for k in range(num_tilings)])
 
         # Index based hashing
-        tmp = np.append(self.num_tiles_per_dim[1:], 1)
+        tmp = np.append(self.num_tiles_per_feature[1:], 1)
         self.base_hash = np.cumprod(tmp[::-1])[::-1]
 
     def __call__(self, x):
@@ -45,27 +48,38 @@ class TileCoder:
             - x : Continuous state to be discretized.
 
         Returns:
-            - tuple : A tuple representing the discrete state.
+            - list : A list representing the discrete state.
         """
         eps = 1e-10
         tile_coords = ((x - self.lower_lim) / (self.tile_width + eps)
-                       + self.offsets).astype(int)
+                       + self.offsets).astype(np.int32)
 
-        tile_coord_hash = np.dot(self.base_hash, tile_coords.T)
-        return tuple(tile_coord_hash)
+
+        tile_coord_hash = (
+            # self.tile_base_index
+            + np.dot(self.base_hash, tile_coords.T)
+        )
+        return list(self.base_tile_index + tile_coord_hash)
+
+    @property
+    def total_tiles(self):
+        return int(self.num_tilings*np.prod(self.num_tiles_per_feature))
 
 
 if __name__ == '__main__':
 
     lower_lim = np.array([0, 0, 0])
-    upper_lim = np.array([4, 3, 2])
+    upper_lim = np.array([8, 4, 6])
     num_tilings = 1
 
     tc = TileCoder(
-        num_tiles_per_dim=[4, 3, 2],
+        num_tiles_per_feature=[4, 2, 3],
         num_tilings=num_tilings,
         lower_lim=lower_lim,
         upper_lim=upper_lim
     )
 
-    print(tc([0, 0, 0]))
+    for i in range(4):
+        for j in range(2):
+            for k in range(3):
+                print(tc([2*i+0.01, 2*j+0.01, 2*k+0.01])[0])
