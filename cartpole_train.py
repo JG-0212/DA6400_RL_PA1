@@ -4,7 +4,7 @@ from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
 import numpy as np
 
-from scripts.agents import QTableAgent
+from scripts.agents import QTableAgent, SARSAAgent
 from scripts.training import training
 
 
@@ -46,27 +46,28 @@ def main():
 
     env = gym.make('CartPole-v1', render_mode="rgb_array")
     env = ObsWrapper(env,
-                     lambda obs: np.clip(obs, -4, 4))
+                     lambda obs: np.clip(obs, -5, 5))
     env = RecordVideo(
         env,
-        video_folder="backups/cartpole-visualizations",
+        video_folder="backups/cartpole-qlearning-visualizations",
         name_prefix="eval",
         episode_trigger=episode_trigger
     )
 
-    agent = QTableAgent(state_space=env.observation_space,
-                        action_space=env.action_space,
-                        seed=0
-                        )
+    agent = QTableAgent(
+        state_space=env.observation_space,
+        action_space=env.action_space,
+        seed=0
+    )
 
     hyperparameters = {
         "NUM_TILES_PER_FEATURE": [10, 10, 10, 10],
         "NUM_TILINGS": 1,
         "GAMMA": 1,
-        "LR":0.01,
-        "tau_start": 5000,
-        "tau_end": 1,
-        "tau_decay": 4900.0/50000
+        "LR": 0.01,
+        "tau_start": 1,
+        "tau_end": 0.01,
+        "tau_decay": 0.99/50000
     }
 
     agent.update_hyperparameters(**hyperparameters)
