@@ -1,9 +1,9 @@
 program: cartpole_qlearning_tune.py
-name: cartpole_qlearning_sweep
+name: cartpole_qlearning_sweep_max
 method: bayes
 metric:
   goal: maximize
-  name: mean_scores
+  name: max_mean_score
 parameters:
   num_tiles_per_feature:
     values: [5, 10, 20]

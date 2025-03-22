@@ -67,7 +67,7 @@ def main():
         "LR": 0.01,
         "tau_start": 1,
         "tau_end": 0.01,
-        "tau_decay": 0.99/50000
+        "tau_decay": 4900.0/50000
     }
 
     agent.update_hyperparameters(**hyperparameters)
