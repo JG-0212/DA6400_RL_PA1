@@ -1,0 +1,24 @@
+program: cartpole_qlearning_tune.py
+name: cartpole_qlearning_sweep_regret
+method: bayes
+metric:
+  goal: minimize
+  name: regret
+parameters:
+  num_tiles_per_feature:
+    values: [10, 20, 30]
+  num_tilings:
+    values: [1, 2, 4, 8, 16, 32]
+  learning_rate:
+    values: [1e-1, 1e-2, 1e-3, 1e-4]
+  decay_type:
+    values: ['linear','exponential']
+  tau_start:
+    values: [1, 1e1, 1e2, 1e3, 1e4, 1e5]
+  frac_episodes_to_decay:
+    values: [0.1, 0.3, 0.5, 0.7, 1]
+  
+# Ensure it runs using your virtual environment
+command:
+  - /home/lalit/my_venvs/rl_env/bin/python
+  - ${program}  

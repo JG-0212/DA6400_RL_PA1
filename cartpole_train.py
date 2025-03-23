@@ -76,9 +76,9 @@ def main():
 
     num_episodes = 10000
     decay_type = "linear"
-    tau_start = 10
-    frac_episodes_to_decay = 0.5
-    num_tiles_per_feature = 20
+    tau_start = 1e5
+    frac_episodes_to_decay = 0.7
+    num_tiles_per_feature = 30
     num_tilings = 1
     learning_rate = 0.1
 

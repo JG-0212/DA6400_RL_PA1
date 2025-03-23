@@ -32,24 +32,30 @@ class trainingInspector:
     def __init__(self):
 
         self.max_mean_score = None
+        self.regret = 0
+        self.max_reward = 500
 
     def process_training_info(self, agent, scores, termination, truncation):
 
         mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
         latest_score = scores[-1]
+        self.regret = 0
 
         if len(scores) == 1:
             # Reset after every episode
+            self.regret = self.max_reward - latest_score
             self.max_mean_score = mean_scores
-
-        self.max_mean_score = max(self.max_mean_score, mean_scores)
+        else:
+            self.max_mean_score = max(self.max_mean_score, mean_scores)
+            self.regret += self.max_reward - latest_score
 
         try:
             wandb.log(
                 {
-                    "max_mean_score": self.max_mean_score,
+                    # "max_mean_score": self.max_mean_score,
                     "mean_scores": mean_scores,
-                    "score": latest_score
+                    "score": latest_score,
+                    "regret": self.regret
                 }
             )
         except:
@@ -77,7 +83,7 @@ def main():
     entity = os.getenv('ENTITY')
     project = os.getenv('PROJECT')
 
-    with open('./configs/cartpole_qlearning.yaml') as file:
+    with open('./configs/cartpole_qlearning_regret.yaml') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     run = wandb.init(entity=entity, project=project, config=config)
     env = gym.make('CartPole-v1', render_mode="rgb_array")
