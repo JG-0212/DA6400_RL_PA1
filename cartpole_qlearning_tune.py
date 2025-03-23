@@ -26,6 +26,7 @@ class ObsWrapper(gym.ObservationWrapper):
     def observation(self, observation):
         return self.f(observation)
 
+
 class trainingInspector:
 
     def __init__(self):
@@ -57,10 +58,12 @@ class trainingInspector:
             return True, {"Mean Score": mean_scores}
         return False, {"Mean Score": mean_scores}
 
+
 def moving_average(arr, n=100):
     csum = np.cumsum(arr)
     csum[n:] = csum[n:] - csum[:-n]
     return csum[n - 1:] / n
+
 
 def episode_trigger(x):
     if x % 1000 == 0:
@@ -98,7 +101,7 @@ def main():
         tau_decay = (float(wandb.config.tau_start)-0.01) / \
             (float(wandb.config.frac_episodes_to_decay)*num_episodes)
     elif wandb.config.decay_type == 'exponential':
-        tau_decay = 10 ** (np.log(0.01/float(wandb.config.tau_start)) /
+        tau_decay = 10 ** (np.log10(0.01/float(wandb.config.tau_start)) /
                            (float(wandb.config.frac_episodes_to_decay)*num_episodes))
 
     hyperparameters = {
