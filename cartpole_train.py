@@ -86,7 +86,7 @@ def main():
         tau_decay = (float(tau_start)-0.01) / \
             (float(frac_episodes_to_decay)*num_episodes)
     elif decay_type == 'exponential':
-        tau_decay = 10 ** (np.log(0.01/float(tau_start)) /
+        tau_decay = 10 ** (np.log10(0.01/float(tau_start)) /
                            (float(frac_episodes_to_decay)*num_episodes))
 
     hyperparameters = {

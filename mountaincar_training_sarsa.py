@@ -7,14 +7,32 @@ from scripts.agents import QTableAgent, SARSAAgent
 from scripts.training import training
 
 
-def process_training_info(agent, scores, termination, truncation):
-    num_rolling_episodes = 50
-    mean_scores = np.array(scores[
-        max(0, len(scores)-num_rolling_episodes):]).mean()
+class trainingInspector:
 
-    if mean_scores >= -150:
-        return True, {"Mean Score": mean_scores}
-    return False, {"Mean Score": mean_scores}
+    def __init__(self):
+
+        self.max_mean_score = None
+
+    def process_training_info(self, agent, scores, termination, truncation):
+
+        mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
+        latest_score = scores[-1]
+
+        if len(scores) == 1:
+            # Reset after every episode
+            self.max_mean_score = mean_scores
+
+        self.max_mean_score = max(self.max_mean_score, mean_scores)
+
+        if mean_scores >= -110:
+            return True, {"Mean Score": mean_scores}
+        return False, {"Mean Score": mean_scores}
+
+
+def moving_average(arr, n=100):
+    csum = np.cumsum(arr)
+    csum[n:] = csum[n:] - csum[:-n]
+    return csum[n - 1:] / n
 
 
 def episode_trigger(x):
@@ -39,33 +57,47 @@ def main():
         seed=0
     )
 
+    num_episodes = 10000
+    decay_type = "linear"
+    eps_start = 0.5
+    frac_episodes_to_decay = 0.5
+    num_tiles_per_feature = 20
+    num_tilings = 8
+    learning_rate = 0.1
+
+    if decay_type == 'linear':
+        eps_decay = (float(eps_start)-0.01) / \
+            (float(frac_episodes_to_decay)*num_episodes)
+    elif decay_type == 'exponential':
+        eps_decay = 10 ** (np.log10(0.01/float(eps_start)) /
+                           (float(frac_episodes_to_decay)*num_episodes))
+
     hyperparameters = {
-        "NUM_TILES_PER_FEATURE": [10, 10],
-        "NUM_TILINGS": 8,
-        "GAMMA": 1,
-        "LR": 0.2,
-        "eps_start": 0.2,
+        "NUM_TILES_PER_FEATURE": [num_tiles_per_feature]*env.observation_space.shape[0],
+        "NUM_TILINGS": num_tilings,
+        "GAMMA": 0.99,
+        "LR": learning_rate,
+        "eps_start": eps_start,
         "eps_end": 0.01,
-        "eps_decay": 0.99/10000
+        "decay_type": "linear",
+        "eps_decay": eps_decay
     }
+
+    print(hyperparameters)
 
     agent.update_hyperparameters(**hyperparameters)
 
-    results = training(env, agent,
-                       n_episodes=25000,
-                       process_training_info=process_training_info)
+    ti = trainingInspector()
+
+    results = training(
+        env, agent,
+        n_episodes=num_episodes,
+        process_training_info=ti.process_training_info)
 
     plt.figure()
     plt.plot(results["scores"])
+    plt.plot(moving_average(results["scores"]))
     plt.show()
-
-    # plt.figure()
-    # mi = np.min(agent.QTable)
-    # ma = np.max(agent.QTable)
-    # im = (agent.QTable - mi)/(ma-mi)
-    # im = np.reshape(im, [16, 10, 10, 3])
-    # plt.imshow(im[0])
-    # plt.show()
 
     env.close()
 
