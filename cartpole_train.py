@@ -75,19 +75,19 @@ def main():
     )
 
     num_episodes = 10000
-    decay_type = "linear"
-    tau_start = 1e5
-    frac_episodes_to_decay = 0.7
-    num_tiles_per_feature = 30
+    decay_type = "exponential"
+    tau_start = 10000
+    tau_end = 0.1
+    frac_episodes_to_decay = 1
+    num_tiles_per_feature = 20
     num_tilings = 1
     learning_rate = 0.1
 
     if decay_type == 'linear':
-        tau_decay = (float(tau_start)-0.01) / \
-            (float(frac_episodes_to_decay)*num_episodes)
+        tau_decay = (tau_start-tau_end) / (frac_episodes_to_decay*num_episodes)
     elif decay_type == 'exponential':
-        tau_decay = 10 ** (np.log10(0.01/float(tau_start)) /
-                           (float(frac_episodes_to_decay)*num_episodes))
+        tau_decay = 10 ** (np.log10(tau_end/tau_start) /
+                           (frac_episodes_to_decay*num_episodes))
 
     hyperparameters = {
         "NUM_TILES_PER_FEATURE": [int(num_tiles_per_feature)]*env.observation_space.shape[0],
@@ -95,7 +95,7 @@ def main():
         "GAMMA": 0.99,
         "LR": float(learning_rate),
         "tau_start": float(tau_start),
-        "tau_end": 0.01,
+        "tau_end": tau_end,
         "decay_type": decay_type,
         "tau_decay": tau_decay
     }
