@@ -23,8 +23,7 @@ def softmax(action_values, action_size, tau):
                                       p=softmax_Q)
     return softmax_action
 
-
-class QTableAgent:
+class QLearningAgent:
 
     def __init__(self, state_space, action_space, seed):
         '''Hyperparameters for MDP'''

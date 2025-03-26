@@ -64,6 +64,43 @@ class TileCoder:
     @property
     def total_tiles(self):
         return int(self.num_tilings*np.prod(self.num_tiles_per_feature))
+    
+
+class QTable:
+
+    def __init__(self, num_tiles_per_feature,  num_tilings, lower_lim, upper_lim, action_size):
+
+        self.tile_coder = TileCoder(
+            num_tiles_per_feature=num_tiles_per_feature,
+            num_tilings=num_tilings,
+            lower_lim=lower_lim,
+            upper_lim=upper_lim
+        )
+
+        self.table_size = np.append(self.tile_coder.total_tiles,
+                                    action_size)
+
+        self.table = np.zeros(self.table_size)
+
+    def __getitem__(self, key):
+        """To get q_value = q_table[state] or q_value = q_table[state, action]
+        """
+        if isinstance(key, tuple) and len(key) == 2:
+            state, action = key
+            idx_s = self.tile_coder(state)
+            return self.table[idx_s, action].mean()
+        elif isinstance(key, tuple) and len(key) == 1:
+            state = key
+            idx_s = self.tile_coder(state)
+            return self.table[idx_s].mean(axis=0)
+        else:
+            raise ValueError("Key must be a tuple (state, action) or (state)")
+
+    def __setitem__(self, key, value):
+        """To set q_table[state, action] = value
+        """
+        if not (isinstance(key, tuple) and len(key) == 2):
+            raise ValueError("Key must be a tuple (state, action)")
 
 
 if __name__ == '__main__':

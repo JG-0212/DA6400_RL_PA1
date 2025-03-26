@@ -4,7 +4,7 @@ from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
 import numpy as np
 
-from scripts.agents import QTableAgent, SARSAAgent
+from scripts.agents import QLearningAgent, SARSAAgent
 from scripts.training import training, trainingInspector
 
 

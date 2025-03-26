@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import wandb
 
-from scripts.agents import QTableAgent, SARSAAgent
+from scripts.agents import QLearningAgent, SARSAAgent
 from scripts.training import training, trainingInspector
 
 
@@ -43,7 +43,7 @@ def main():
         episode_trigger=episode_trigger
     )
 
-    agent = QTableAgent(
+    agent = QLearningAgent(
         state_space=env.observation_space,
         action_space=env.action_space,
         seed=0
