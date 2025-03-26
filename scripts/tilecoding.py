@@ -89,18 +89,21 @@ class QTable:
             state, action = key
             idx_s = self.tile_coder(state)
             return self.table[idx_s, action].mean()
-        elif isinstance(key, tuple) and len(key) == 1:
+        else:
             state = key
             idx_s = self.tile_coder(state)
             return self.table[idx_s].mean(axis=0)
-        else:
-            raise ValueError("Key must be a tuple (state, action) or (state)")
 
     def __setitem__(self, key, value):
         """To set q_table[state, action] = value
         """
         if not (isinstance(key, tuple) and len(key) == 2):
             raise ValueError("Key must be a tuple (state, action)")
+
+        state, action = key
+        print(state, action)
+        idx_s = self.tile_coder(state)
+        self.table[idx_s, action] = value
 
 
 if __name__ == '__main__':

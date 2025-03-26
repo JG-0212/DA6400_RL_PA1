@@ -1,9 +1,7 @@
 import random
 import numpy as np
 
-from scripts.network import ReplayBuffer
-from scripts.tilecoding import TileCoder
-
+from scripts.tilecoding import TileCoder, QTable
 
 def epsilon_greedy(action_values, action_size, eps):
     if np.random.uniform(0, 1) <= eps:
