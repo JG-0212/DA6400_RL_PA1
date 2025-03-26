@@ -1,0 +1,26 @@
+program: cartpole_sarsa_tune.py
+name: cartpole_sarsa_sweep
+method: bayes
+metric:
+  goal: minimize
+  name: regret
+parameters:
+  num_tiles_per_feature:
+    values: [20, 30]
+  num_tilings:
+    values: [1]
+  learning_rate:
+    values: [1e-1]
+  decay_type:
+    values: ['linear','exponential']
+  eps_start:
+    values: [1]
+  eps_end:
+    values: [1e-1, 1e-2]
+  frac_episodes_to_decay:
+    values: [0.1, 0.3, 0.5, 0.7, 1]
+    
+# Ensure it runs using your virtual environment
+command:
+  - /home/lalit/my_venvs/rl_env/bin/python
+  - ${program}  
