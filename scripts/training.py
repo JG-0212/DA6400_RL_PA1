@@ -59,8 +59,6 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda *args, *
         if early_stop:
             break
 
-        # Wandb logging
-
     end_time = datetime.datetime.now()
     return {
         "computation_time": end_time - begin_time,

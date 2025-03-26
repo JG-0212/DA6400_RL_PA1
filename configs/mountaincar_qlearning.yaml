@@ -1,0 +1,26 @@
+program: mountaincar_qlearning_tune.py
+name: mountaincar_qlearning_tune
+method: bayes
+metric:
+  goal: minimize
+  name: regret
+parameters:
+  num_tiles_per_feature:
+    values: [10, 20, 30]
+  num_tilings:
+    values: [1, 4, 16]
+  learning_rate:
+    values: [1e-1, 1e-2]
+  decay_type:
+    values: ['linear','exponential']
+  tau_start:
+    values: [1e3, 1e4, 1e5]
+  tau_end:
+    values: [1e-1, 1, 1e2]
+  frac_episodes_to_decay:
+    values: [0.1, 0.3, 0.5, 0.7, 1]
+  
+# Ensure it runs using your virtual environment
+command:
+  - /home/lalit/my_venvs/rl_env/bin/python
+  - ${program}  

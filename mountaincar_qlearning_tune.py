@@ -12,21 +12,6 @@ import wandb
 from scripts.agents import QTableAgent, SARSAAgent
 from scripts.training import training
 
-
-class ObsWrapper(gym.ObservationWrapper):
-
-    def __init__(self, env: gym.Env, f: Callable[[Any], Any]):
-        super().__init__(env)
-        assert callable(f)
-        self.f = f
-
-        self.observation_space.high = f(env.observation_space.high)
-        self.observation_space.low = f(env.observation_space.low)
-
-    def observation(self, observation):
-        return self.f(observation)
-
-
 class trainingInspector:
 
     def __init__(self, max_reward):
@@ -62,16 +47,14 @@ def main():
     entity = os.getenv('ENTITY')
     project = os.getenv('PROJECT')
 
-    with open('./configs/cartpole_qlearning_regret.yaml') as file:
+    with open('./configs/mountaincar_qlearning.yaml') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     run = wandb.init(entity=entity, project=project, config=config)
 
-    env = gym.make('CartPole-v1', render_mode="rgb_array")
-    env = ObsWrapper(env,
-                     lambda obs: np.clip(obs, -5, 5))
+    env = gym.make('MountainCar-v0', render_mode="rgb_array")
     env = RecordVideo(
         env,
-        video_folder="backups/cartpole-qlearning-visualizations",
+        video_folder="backups/mountaincar-qlearning-visualizations",
         name_prefix="eval",
         episode_trigger=episode_trigger
     )
@@ -83,7 +66,7 @@ def main():
     )
 
     num_episodes = 10000
-    max_reward = 500
+    max_reward = -110
     num_tiles_per_feature = int(wandb.config.num_tiles_per_feature)
     num_tilings = int(wandb.config.num_tilings)
     learning_rate = float(wandb.config.learning_rate)
