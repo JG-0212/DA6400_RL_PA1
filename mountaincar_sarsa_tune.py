@@ -1,7 +1,13 @@
+import os
+import yaml
+from typing import Any, Callable
+from dotenv import load_dotenv
+
 import gymnasium as gym
 from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
 import numpy as np
+import wandb
 
 from scripts.agents import QTableAgent, SARSAAgent
 from scripts.training import training, trainingInspector
@@ -20,6 +26,14 @@ def episode_trigger(x):
 
 
 def main():
+    load_dotenv('custom_wandb.env')
+
+    entity = os.getenv('ENTITY')
+    project = os.getenv('PROJECT')
+
+    with open('./configs/mountaincar_sarsa.yaml') as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+    run = wandb.init(entity=entity, project=project, config=config)
 
     env = gym.make('MountainCar-v0', render_mode="rgb_array")
     env = RecordVideo(
@@ -37,13 +51,13 @@ def main():
 
     num_episodes = 10000
     max_reward = -100
-    num_tiles_per_feature = 20
-    num_tilings = 4
-    learning_rate = 0.1
-    eps_start = 1
-    eps_end = 0.01
-    decay_type = "exponential"
-    frac_episodes_to_decay = 0.5
+    num_tiles_per_feature = int(wandb.config.num_tiles_per_feature)
+    num_tilings = int(wandb.config.num_tilings)
+    learning_rate = float(wandb.config.learning_rate)
+    eps_start = float(wandb.config.eps_start)
+    eps_end = float(wandb.config.eps_end)
+    decay_type = wandb.config.decay_type
+    frac_episodes_to_decay = float(wandb.config.frac_episodes_to_decay)
 
     if decay_type == 'linear':
         eps_decay = (eps_start-eps_end) / (frac_episodes_to_decay*num_episodes)
@@ -62,7 +76,7 @@ def main():
         "eps_decay": eps_decay
     }
 
-    print(hyperparameters)
+    run.name = repr(hyperparameters).strip("{}")
 
     num_experiments = 1
 
@@ -87,8 +101,23 @@ def main():
     result_history["scores"] /= num_experiments
     result_history["moving_average_scores"] /= num_experiments
 
-    plt.plot(result_history["moving_average_scores"])
-    plt.show()
+    for score in result_history["scores"]:
+        wandb.log(
+            {
+                "score": score
+            }
+        )
+    for moving_avg in result_history["moving_average_scores"]:
+        wandb.log(
+            {
+                "mean_score": moving_avg
+            }
+        )
+
+    wandb.log({
+        "max_mean_score": np.max(result_history["moving_average_scores"]),
+        "regret": num_episodes*max_reward - np.sum(result_history["scores"])
+    })
 
     env.close()
 

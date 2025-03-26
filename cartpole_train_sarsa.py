@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from scripts.agents import QTableAgent, SARSAAgent
-from scripts.training import training
+from scripts.training import training, trainingInspector
 
 
 class ObsWrapper(gym.ObservationWrapper):
@@ -20,28 +20,6 @@ class ObsWrapper(gym.ObservationWrapper):
 
     def observation(self, observation):
         return self.f(observation)
-
-
-class trainingInspector:
-
-    def __init__(self):
-
-        self.max_mean_score = None
-
-    def process_training_info(self, agent, scores, termination, truncation):
-
-        mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
-        latest_score = scores[-1]
-
-        if len(scores) == 1:
-            # Reset after every episode
-            self.max_mean_score = mean_scores
-
-        self.max_mean_score = max(self.max_mean_score, mean_scores)
-
-        if mean_scores >= 500:
-            return True, {"Mean Score": mean_scores}
-        return False, {"Mean Score": mean_scores}
 
 
 def moving_average(arr, n=100):

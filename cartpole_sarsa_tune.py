@@ -13,6 +13,20 @@ from scripts.agents import QTableAgent, SARSAAgent
 from scripts.training import training, trainingInspector
 
 
+class ObsWrapper(gym.ObservationWrapper):
+
+    def __init__(self, env: gym.Env, f: Callable[[Any], Any]):
+        super().__init__(env)
+        assert callable(f)
+        self.f = f
+
+        self.observation_space.high = f(env.observation_space.high)
+        self.observation_space.low = f(env.observation_space.low)
+
+    def observation(self, observation):
+        return self.f(observation)
+
+
 def moving_average(arr, n=100):
     csum = np.cumsum(arr)
     csum[n:] = csum[n:] - csum[:-n]
@@ -31,38 +45,40 @@ def main():
     entity = os.getenv('ENTITY')
     project = os.getenv('PROJECT')
 
-    with open('./configs/mountaincar_qlearning.yaml') as file:
+    with open('./configs/cartpole_sarsa.yaml') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     run = wandb.init(entity=entity, project=project, config=config)
 
-    env = gym.make('MountainCar-v0', render_mode="rgb_array")
+    env = gym.make('CartPole-v1', render_mode="rgb_array")
+    env = ObsWrapper(env,
+                     lambda obs: np.clip(obs, -5, 5))
     env = RecordVideo(
         env,
-        video_folder="backups/mountaincar-qlearning-visualizations",
+        video_folder="backups/cartpole-qlearning-visualizations",
         name_prefix="eval",
         episode_trigger=episode_trigger
     )
 
-    agent = QTableAgent(
+    agent = SARSAAgent(
         state_space=env.observation_space,
         action_space=env.action_space,
         seed=0
     )
 
     num_episodes = 10000
-    max_reward = -100
+    max_reward = 500
     num_tiles_per_feature = int(wandb.config.num_tiles_per_feature)
     num_tilings = int(wandb.config.num_tilings)
     learning_rate = float(wandb.config.learning_rate)
-    tau_start = float(wandb.config.tau_start)
-    tau_end = float(wandb.config.tau_end)
+    eps_start = float(wandb.config.eps_start)
+    eps_end = float(wandb.config.eps_end)
     decay_type = wandb.config.decay_type
     frac_episodes_to_decay = float(wandb.config.frac_episodes_to_decay)
 
     if decay_type == 'linear':
-        tau_decay = (tau_start-tau_end) / (frac_episodes_to_decay*num_episodes)
+        eps_decay = (eps_start-eps_end) / (frac_episodes_to_decay*num_episodes)
     elif decay_type == 'exponential':
-        tau_decay = 10 ** (np.log10(tau_end/tau_start) /
+        eps_decay = 10 ** (np.log10(eps_end/eps_start) /
                            (frac_episodes_to_decay*num_episodes))
 
     hyperparameters = {
@@ -70,15 +86,15 @@ def main():
         "NUM_TILINGS": num_tilings,
         "GAMMA": 0.99,
         "LR": learning_rate,
-        "tau_start": tau_start,
-        "tau_end": tau_end,
+        "eps_start": eps_start,
+        "eps_end": eps_end,
         "decay_type": decay_type,
-        "tau_decay": tau_decay
+        "eps_decay": eps_decay
     }
 
     run.name = repr(hyperparameters).strip("{}")
 
-    num_experiments = 1
+    num_experiments = 5
 
     result_history = {
         "scores": np.zeros(num_episodes),
@@ -96,7 +112,8 @@ def main():
             process_training_info=ti.process_training_info)
 
         result_history["scores"] += results["scores"]
-        result_history["moving_average_scores"] += moving_average(results["scores"])
+        result_history["moving_average_scores"] += moving_average(
+            results["scores"])
 
     result_history["scores"] /= num_experiments
     result_history["moving_average_scores"] /= num_experiments

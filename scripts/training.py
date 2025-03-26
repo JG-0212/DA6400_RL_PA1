@@ -32,10 +32,12 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda *args, *
         state, _ = env.reset()
         score = 0
         terminated, truncated = False, False
+        episode_history =[]
 
         while not (terminated or truncated):
             action, action_vals = agent.act(state)
             next_state, reward, terminated, truncated, _ = env.step(action)
+            episode_history.append((state, action, reward, next_state))
             agent.step(state, action, reward, next_state, terminated)
             state = next_state
             score += reward
@@ -50,7 +52,8 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda *args, *
             agent,
             history_scores,
             history_termination,
-            history_truncation
+            history_truncation,
+            episode_history
         )
 
         if info:
@@ -64,3 +67,19 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda *args, *
         "computation_time": end_time - begin_time,
         "scores": np.array(history_scores),
     }
+
+class trainingInspector:
+
+    def __init__(self, max_reward):
+
+        self.max_mean_score = None
+        self.regret = 0
+        self.max_reward = max_reward
+
+    def process_training_info(self, agent, scores, termination, truncation, episode_history):
+
+        mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
+        if mean_scores >= self.max_reward:
+            agent.LR = 0
+            return False, {"Mean Score": mean_scores}
+        return False, {"Mean Score": mean_scores}

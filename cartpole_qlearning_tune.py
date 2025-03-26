@@ -10,7 +10,7 @@ import numpy as np
 import wandb
 
 from scripts.agents import QTableAgent, SARSAAgent
-from scripts.training import training
+from scripts.training import training, trainingInspector
 
 
 class ObsWrapper(gym.ObservationWrapper):
@@ -25,23 +25,6 @@ class ObsWrapper(gym.ObservationWrapper):
 
     def observation(self, observation):
         return self.f(observation)
-
-
-class trainingInspector:
-
-    def __init__(self, max_reward):
-
-        self.max_mean_score = None
-        self.regret = 0
-        self.max_reward = max_reward
-
-    def process_training_info(self, agent, scores, termination, truncation):
-
-        mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
-        if mean_scores >= self.max_reward:
-            agent.LR = 0
-            return False, {"Mean Score": mean_scores}
-        return False, {"Mean Score": mean_scores}
 
 
 def moving_average(arr, n=100):
@@ -129,7 +112,8 @@ def main():
             process_training_info=ti.process_training_info)
 
         result_history["scores"] += results["scores"]
-        result_history["moving_average_scores"] += moving_average(results["scores"])
+        result_history["moving_average_scores"] += moving_average(
+            results["scores"])
 
     result_history["scores"] /= num_experiments
     result_history["moving_average_scores"] /= num_experiments
