@@ -1,7 +1,6 @@
 from tqdm import tqdm
 import datetime
 import numpy as np
-from collections import deque
 
 
 def training(env, agent, n_episodes=10000, process_training_info=lambda *args, **kwargs: (False, {})):
@@ -32,7 +31,7 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda *args, *
         state, _ = env.reset()
         score = 0
         terminated, truncated = False, False
-        episode_history =[]
+        episode_history = []
 
         while not (terminated or truncated):
             action, action_vals = agent.act(state)
@@ -68,18 +67,28 @@ def training(env, agent, n_episodes=10000, process_training_info=lambda *args, *
         "scores": np.array(history_scores),
     }
 
+
 class trainingInspector:
 
-    def __init__(self, max_reward):
+    def __init__(self, max_return):
+        """To inspect an agent's performance during training
+
+        The function self.process_training_info runs after every episode and 
+        a can be used to send a signal for early stopping and update the
+        progress bar during training
+
+        Args:
+            - max_return (float): The maximum return of an epsiode.
+        """
 
         self.max_mean_score = None
         self.regret = 0
-        self.max_reward = max_reward
+        self.max_return = max_return
 
     def process_training_info(self, agent, scores, termination, truncation, episode_history):
 
         mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
-        if mean_scores >= self.max_reward:
+        if mean_scores >= self.max_return:
             agent.LR = 0
             return False, {"Mean Score": mean_scores}
         return False, {"Mean Score": mean_scores}
