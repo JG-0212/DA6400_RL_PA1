@@ -45,7 +45,7 @@ def main():
     entity = os.getenv('ENTITY')
     project = os.getenv('PROJECT')
 
-    with open('./configs/cartpole_qlearning_regret.yaml') as file:
+    with open('./configs/cartpole_qlearning.yaml') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     run = wandb.init(entity=entity, project=project, config=config)
 
