@@ -10,7 +10,7 @@ import numpy as np
 import wandb
 
 from scripts.agents import QLearningAgent, SARSAAgent
-from scripts.training import training, trainingInspector
+from scripts.training import Trainer, trainingInspector
 
 
 class ObsWrapper(gym.ObservationWrapper):
@@ -105,8 +105,8 @@ def main():
         agent.update_hyperparameters(**hyperparameters)
 
         ti = trainingInspector(max_reward)
-
-        results = training(
+        tr = Trainer()
+        results = tr.training(
             env, agent,
             n_episodes=num_episodes,
             process_training_info=ti.process_training_info)

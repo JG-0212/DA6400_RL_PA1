@@ -77,18 +77,18 @@ class QLearningAgent:
             self.tau = max(self.tau_end, self.tau*self.tau_decay)
 
     def step(self, state, action, reward, next_state, done):
-        if not done:
-            idx_s = self.tile_coder(state)
-            idx_next_s = self.tile_coder(next_state)
 
-            q_sa = self.QTable[idx_s, action].mean()
+        idx_s = self.tile_coder(state)
+        idx_next_s = self.tile_coder(next_state)
 
-            q_next_sa = np.max(
-                self.QTable[idx_next_s].mean(axis=0)
-            )
-            self.QTable[idx_s, action] = (
-                q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
-            )
+        q_sa = self.QTable[idx_s, action].mean()
+
+        q_next_sa = np.max(
+            self.QTable[idx_next_s].mean(axis=0)
+        )
+        self.QTable[idx_s, action] = (
+            q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
+        )
 
     def act(self, state):
         idx_s = self.tile_coder(state)
@@ -154,24 +154,24 @@ class SARSAAgent:
         self.eps = max(self.eps_end, self.eps - self.eps_decay)
 
     def step(self, state, action, reward, next_state, done):
-        if not done:
-            idx_s = self.tile_coder(state)
-            idx_next_s = self.tile_coder(next_state)
+        idx_s = self.tile_coder(state)
+        idx_next_s = self.tile_coder(next_state)
 
-            q_sa = self.QTable[idx_s, action].mean()
+        q_sa = self.QTable[idx_s, action].mean()
 
-            next_action_values = self.QTable[idx_next_s].mean(axis=0)
-            self.next_action = epsilon_greedy(
-                action_values=next_action_values,
-                action_size=self.action_size,
-                eps=self.eps
-            )
+        next_action_values = self.QTable[idx_next_s].mean(axis=0)
+        self.next_action = epsilon_greedy(
+            action_values=next_action_values,
+            action_size=self.action_size,
+            eps=self.eps
+        )
 
-            q_next_sa = next_action_values[self.next_action]
+        q_next_sa = next_action_values[self.next_action]
 
-            self.QTable[idx_s, action] = (
-                q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
-            )
+        self.QTable[idx_s, action] = (
+            q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
+        )
+
 
     def act(self, state):
         idx_s = self.tile_coder(state)
