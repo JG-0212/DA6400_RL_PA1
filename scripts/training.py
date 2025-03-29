@@ -1,6 +1,9 @@
 from tqdm import tqdm
 import datetime
 import numpy as np
+import matplotlib.pyplot as plt
+
+from scripts.agents import QLearningAgent, SARSAAgent
 
 class Trainer:
 
@@ -99,3 +102,146 @@ class trainingInspector:
         if mean_scores >= self.max_return:
             return False, {"Mean Score": mean_scores}
         return False, {"Mean Score": mean_scores}
+
+
+def moving_average(arr, n=100):
+    csum = np.cumsum(arr)
+    csum[n:] = csum[n:] - csum[:-n]
+    return csum[n - 1:] / n
+
+def compute_decay(param_start, param_end, frac_episodes_to_decay, num_episodes, decay_type):
+    if decay_type == 'linear':
+        param_decay = (param_start-param_end) / (frac_episodes_to_decay*num_episodes)
+    elif decay_type == 'exponential':
+        param_decay = 10 ** (np.log10(param_end/param_start) /
+                           (frac_episodes_to_decay*num_episodes))
+
+    return param_decay
+
+def test_agent(env, agent, trainer, hyperparameter_list, num_experiments=5):
+    """To test agents and compute metrics
+    """
+
+    test_results = []
+
+    for test_num, test_hyperparameters in enumerate(hyperparameter_list):
+        
+        num_episodes = test_hyperparameters["num_episodes"]    
+        max_return = test_hyperparameters["max_return"]
+        num_tiles_per_feature = test_hyperparameters["num_tiles_per_feature"]
+        num_tilings = test_hyperparameters["num_tilings"]
+        learning_rate = test_hyperparameters["learning_rate"]
+        decay_type = test_hyperparameters["decay_type"]
+        frac_episodes_to_decay = test_hyperparameters["frac_episodes_to_decay"]
+
+        hyperparameters = {
+            "NUM_TILINGS": num_tilings,
+            "GAMMA": 0.99,
+            "LR": learning_rate,
+            "decay_type": decay_type,
+        }
+        
+        if isinstance(num_tiles_per_feature, list):
+            hyperparameters.update({
+                "NUM_TILES_PER_FEATURE": num_tiles_per_feature
+            })
+        else:
+            hyperparameters.update({
+                "NUM_TILES_PER_FEATURE": [num_tiles_per_feature]*env.observation_space.shape[0]
+            })           
+
+        if isinstance(agent, QLearningAgent):
+            label = "Q-Learning"
+            param_start = test_hyperparameters["tau_start"]
+            param_end = test_hyperparameters["tau_end"]
+            hyperparameters.update({
+                "tau_start": param_start,
+                "tau_end": param_end,
+                "tau_decay": compute_decay(param_start, param_end, 
+                                           frac_episodes_to_decay, 
+                                           num_episodes, decay_type)
+            })
+            
+        elif isinstance(agent, SARSAAgent):
+            label = "SARSA"
+            param_start = test_hyperparameters["eps_start"]
+            param_end = test_hyperparameters["eps_end"]
+            hyperparameters.update({
+                "eps_start": param_start,
+                "eps_end": param_end,
+                "eps_decay": compute_decay(param_start, param_end, 
+                                           frac_episodes_to_decay, 
+                                           num_episodes, decay_type)
+            })
+        
+        result_history = {
+            "experiment": [],
+            "scores": [],
+            "moving_average_scores": []
+        }
+        
+        for experiment in range(1, num_experiments+1):
+            agent.update_hyperparameters(**hyperparameters)
+        
+            ti = trainingInspector(max_return)
+            
+            results = trainer.training(
+                env, agent,
+                n_episodes=num_episodes,
+                process_training_info=ti.process_training_info)
+        
+            result_history["scores"].append(results["scores"])
+            result_history["moving_average_scores"].append(moving_average(results["scores"]))
+        
+        result_history["scores"] = np.array(result_history["scores"])
+        result_history["moving_average_scores"] = np.array(result_history["moving_average_scores"])
+        
+        metrics = {
+            "label": label + f" hyperparams {test_num + 1}",
+            "episodes": range(1, num_episodes+1),
+            "rolling_episodes": range(1, result_history["moving_average_scores"].shape[1] + 1),
+            "means": result_history["scores"].mean(axis=0),
+            "std_dev": result_history["scores"].std(axis=0),
+            "rolling_means": result_history["moving_average_scores"].mean(axis=0),
+            "rolling_std_dev": result_history["moving_average_scores"].std(axis=0)
+        }
+
+        test_results.append(metrics)
+
+    return test_results
+
+def plot_test_results(test_results, experiments):
+
+    plt.subplots(1, 2, figsize=(16, 4))
+    plt.subplot(1,2,1)
+    plt.grid()
+    plt.title("Scores vs Episodes")
+    plt.xlabel("Episodes")
+    plt.ylabel("Scores")
+    for i in experiments:
+        label = test_results[i]["label"]
+        episodes = test_results[i]["episodes"]
+        means = test_results[i]["means"]
+        std_dev = test_results[i]["std_dev"]
+
+        plt.plot(episodes, means, linewidth = 0.2, label=label)
+        plt.fill_between(episodes, means-std_dev, means+std_dev, alpha=0.6)
+        
+    plt.legend()
+
+    plt.subplot(1,2,2)
+    plt.grid()
+    plt.title("Rolling means of scores vs Episodes")
+    plt.xlabel("Episodes")
+    plt.ylabel("Rolling means of scores")
+    for i in experiments:
+        label = test_results[i]["label"]
+        rolling_episodes = test_results[i]["rolling_episodes"]
+        rolling_means = test_results[i]["rolling_means"]
+        rolling_std_dev = test_results[i]["rolling_std_dev"]
+
+        plt.plot(rolling_episodes, rolling_means, linewidth = 1, label=label)
+        plt.fill_between(rolling_episodes, rolling_means-rolling_std_dev, rolling_means+rolling_std_dev, alpha=0.4)
+
+    plt.legend()
+    plt.tight_layout()

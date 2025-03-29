@@ -51,17 +51,14 @@ class QLearningAgent:
         self.tau = self.tau_start
 
         if self.NUM_TILES_PER_FEATURE is not None:
-            self.tile_coder = TileCoder(
+
+            self.q_table = QTable(
                 num_tiles_per_feature=self.NUM_TILES_PER_FEATURE,
                 num_tilings=self.NUM_TILINGS,
                 lower_lim=self.state_space.low,
-                upper_lim=self.state_space.high
+                upper_lim=self.state_space.high,
+                action_size=self.action_size
             )
-
-            self.QTable_size = np.append(self.tile_coder.total_tiles,
-                                         self.action_size)
-
-            self.QTable = np.zeros(self.QTable_size)
 
     def update_hyperparameters(self, **kwargs):
         '''To be changed only at the start of training'''
@@ -78,21 +75,15 @@ class QLearningAgent:
 
     def step(self, state, action, reward, next_state, done):
 
-        idx_s = self.tile_coder(state)
-        idx_next_s = self.tile_coder(next_state)
+        q_sa = self.q_table[state, action]
+        q_next_sa = np.max(self.q_table[next_state])
 
-        q_sa = self.QTable[idx_s, action].mean()
-
-        q_next_sa = np.max(
-            self.QTable[idx_next_s].mean(axis=0)
-        )
-        self.QTable[idx_s, action] = (
+        self.q_table[state, action] = (
             q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
         )
 
     def act(self, state):
-        idx_s = self.tile_coder(state)
-        action_values = self.QTable[idx_s].mean(axis=0)
+        action_values = self.q_table[state]
         softmax_action = softmax(
             action_values=action_values,
             action_size=self.action_size,
@@ -115,6 +106,7 @@ class SARSAAgent:
         '''Hyperparameters for Agent'''
         self.eps_start = 1
         self.eps_end = 0.01
+        self.decay_type = 'linear'
         self.eps_decay = 0.001
 
         ''' Agent Environment Interaction '''
@@ -131,17 +123,13 @@ class SARSAAgent:
         self.next_action = np.random.choice(np.arange(self.action_size))
 
         if self.NUM_TILES_PER_FEATURE is not None:
-            self.tile_coder = TileCoder(
+            self.q_table = QTable(
                 num_tiles_per_feature=self.NUM_TILES_PER_FEATURE,
                 num_tilings=self.NUM_TILINGS,
                 lower_lim=self.state_space.low,
-                upper_lim=self.state_space.high
+                upper_lim=self.state_space.high,
+                action_size=self.action_size
             )
-
-            self.QTable_size = np.append(self.tile_coder.total_tiles,
-                                         self.action_size)
-
-            self.QTable = np.zeros(self.QTable_size)
 
     def update_hyperparameters(self, **kwargs):
         '''To be changed only at the start of training'''
@@ -151,15 +139,17 @@ class SARSAAgent:
         self.reset()
 
     def update_agent_parameters(self):
-        self.eps = max(self.eps_end, self.eps - self.eps_decay)
+        if self.decay_type == 'linear':
+            self.eps = max(self.eps_end, self.eps - self.eps_decay)
+        elif self.decay_type == 'exponential':
+            self.eps = max(self.eps_end, self.eps*self.eps_decay)
 
     def step(self, state, action, reward, next_state, done):
-        idx_s = self.tile_coder(state)
-        idx_next_s = self.tile_coder(next_state)
+        
+        q_sa = self.q_table[state, action]
 
-        q_sa = self.QTable[idx_s, action].mean()
+        next_action_values = self.q_table[next_state]
 
-        next_action_values = self.QTable[idx_next_s].mean(axis=0)
         self.next_action = epsilon_greedy(
             action_values=next_action_values,
             action_size=self.action_size,
@@ -168,13 +158,12 @@ class SARSAAgent:
 
         q_next_sa = next_action_values[self.next_action]
 
-        self.QTable[idx_s, action] = (
+        self.q_table[state, action] = (
             q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
         )
 
 
     def act(self, state):
-        idx_s = self.tile_coder(state)
-        action_values = self.QTable[idx_s].mean(axis=0)
+        action_values = self.q_table[state]
         eps_action = self.next_action
         return eps_action, action_values

@@ -101,7 +101,6 @@ class QTable:
             raise ValueError("Key must be a tuple (state, action)")
 
         state, action = key
-        print(state, action)
         idx_s = self.tile_coder(state)
         self.table[idx_s, action] = value
 
