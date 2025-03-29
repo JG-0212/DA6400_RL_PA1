@@ -1,0 +1,22 @@
+program: minigrid_sarsa_tune.py
+name: minigrid_sarsa_tune
+method: bayes
+metric:
+  goal: minimize
+  name: regret
+parameters:
+  learning_rate:
+    values: [0.1, 0.2, 0.3]
+  decay_type:
+    values: ['linear','exponential']
+  eps_start:
+    values: [1]
+  eps_end:
+    values: [1e-1, 1e-2]
+  frac_episodes_to_decay:
+    values: [0.1, 0.3, 0.5, 0.7, 1]
+  
+# Ensure it runs using your virtual environment
+command:
+  - /home/lalit/my_venvs/rl_env/bin/python
+  - ${program}  
