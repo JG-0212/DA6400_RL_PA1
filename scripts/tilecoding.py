@@ -56,7 +56,7 @@ class TileCoder:
 
 
         tile_coord_hash = (
-            self.tile_base_index
+            self.base_tile_index
             + np.dot(self.base_hash, tile_coords.T)
         )
         return list(self.base_tile_index + tile_coord_hash)
