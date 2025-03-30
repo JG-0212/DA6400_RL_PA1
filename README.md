@@ -48,3 +48,30 @@ Lalit Jayanti ME21B096
   - MountainCar  : [mountaincar_training.ipynb](mountaincar_training.ipynb)
   - MiniGrid  : [minigrid_training.ipynb](minigrid_training.ipynb)
   - Make sure to select the correct kernel for your system from the top-right corner of your notebook, while running the above notebooks
+
+## Results
+Following are a few visulaizations showing the performance of the SARSA and Q-Learning agents in the respective environments.
+
+### CartPole-v1
+ <table>
+  <tr>
+    <td><img src="results/cartpole/cartpole_sarsa.gif" title="SARSA" style="width: 100%;"/></td>
+    <td> <img src="results/cartpole/cartpole_qlearning.gif" title="Q-Learning" style="width: 100%;"/></td>
+  </tr>
+</table> 
+
+### MountainCar-v0
+ <table>
+  <tr>
+    <td><img src="results/mountaincar/mountaincar_sarsa.gif" title="SARSA" style="width: 100%;"/></td>
+    <td> <img src="results/mountaincar/mountaincar_qlearning.gif" title="Q-Learning" style="width: 100%;"/></td>
+  </tr>
+</table> 
+
+### MiniGrid-Dynamic-Obstacles-5x5-v0
+ <table>
+  <tr>
+    <td><img src="results/minigrid/minigrid_sasra.gif" title="SARSA" style="width: 100%;"/></td>
+    <td> <img src="results/minigrid/minigrid_qlearning.gif" title="Q-Learning" style="width: 100%;"/></td>
+  </tr>
+</table> 
