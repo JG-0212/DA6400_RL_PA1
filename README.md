@@ -1,5 +1,9 @@
 # DA6400_RL_PA1
 
+## Submitted by
+Jayagowtham J ME21B078
+Lalit Jayanti ME21B096
+
 ## File Structure 
 
 ```
