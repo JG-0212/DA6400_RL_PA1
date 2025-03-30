@@ -12,7 +12,10 @@ from scripts.tilecoding import QTable
 
 
 class MinigridObsWrapper(gym.Wrapper):
-
+    """Wrapper to modify the observation we recieve from the environment.
+    We parse the observation and inetrpret the agent position depending 
+    on the nearest wall in the required directions
+    """
     def __init__(self, env):
         super().__init__(env)
         self.observation_space = gym.spaces.Box(
@@ -69,18 +72,26 @@ class MinigridObsWrapper(gym.Wrapper):
 
 
 def moving_average(arr, n=100):
+    """The function returns a rolling average of  scores over a window
+    of size n
+    """
     csum = np.cumsum(arr)
     csum[n:] = csum[n:] - csum[:-n]
     return csum[n - 1:] / n
 
 
 def episode_trigger(x):
+    """Sends a trigger signal once every 1000 episodes
+    """
     if x % 1000 == 0:
         return True
     return False
 
 
 def main():
+    """Function setup to configure a sweep run, record videos of policy in action and
+    log results in wandb
+    """
     run = wandb.init()
 
     env = gym.make('MiniGrid-Dynamic-Obstacles-5x5-v0',

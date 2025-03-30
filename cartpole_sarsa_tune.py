@@ -11,7 +11,9 @@ from scripts.training import Trainer, trainingInspector
 
 
 class ObsWrapper(gym.ObservationWrapper):
-
+    """Wrapper function to clip observations preventing them 
+    from taking practically unrealizable values
+    """
     def __init__(self, env: gym.Env, f: Callable[[Any], Any]):
         super().__init__(env)
         assert callable(f)
@@ -25,18 +27,26 @@ class ObsWrapper(gym.ObservationWrapper):
 
 
 def moving_average(arr, n=100):
+    """The function returns a rolling average of  scores over a window
+    of size n
+    """
     csum = np.cumsum(arr)
     csum[n:] = csum[n:] - csum[:-n]
     return csum[n - 1:] / n
 
 
 def episode_trigger(x):
+    """Sends a trigger signal once every 1000 episodes
+    """
     if x % 1000 == 0:
         return True
     return False
 
 
 def main():
+    """Function setup to configure a sweep run, record videos of policy in action and
+    log results in wandb
+    """
     run = wandb.init()
 
     env = gym.make('CartPole-v1', render_mode="rgb_array")
