@@ -34,7 +34,7 @@
     - Change <i>project</i> and <i>entity</i> to your requirements
     - Change interpreter path to match your python path
     ```
-    python3 env_algorithm_tune.py
+    python3 {env}_{algorithm}_tune.py
     # env       {cartpole, mountaincar, minigrid}
     # algorithm {qlearning, sarsa}
     ```
@@ -42,4 +42,4 @@
   - Cartpole  : [cartpole_training.ipynb](cartpole_training.ipynb)
   - MountainCar  : [mountaincar_training.ipynb](mountaincar_training.ipynb)
   - MiniGrid  : [minigrid_training.ipynb](minigrid_training.ipynb)
-
+  - Make sure to select the correct kernel for your system from the top-right corner of your notebook, while running the above notebooks
