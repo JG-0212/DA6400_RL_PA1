@@ -26,14 +26,7 @@ def episode_trigger(x):
 
 
 def main():
-    load_dotenv('custom_wandb.env')
-
-    entity = os.getenv('ENTITY')
-    project = os.getenv('PROJECT')
-
-    with open('./configs/mountaincar_sarsa.yaml') as file:
-        config = yaml.load(file, Loader=yaml.FullLoader)
-    run = wandb.init(entity=entity, project=project, config=config)
+    run = wandb.init()
 
     env = gym.make('MountainCar-v0', render_mode="rgb_array")
     env = RecordVideo(

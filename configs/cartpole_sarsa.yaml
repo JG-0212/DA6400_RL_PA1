@@ -1,5 +1,7 @@
 program: cartpole_sarsa_tune.py
-name: cartpole_sarsa_sweep
+name: cartpole_sarsa_sweep_exp
+project: DA6400_RL_PA1
+entity: me21b096-indian-institute-of-technology-madras
 method: bayes
 metric:
   goal: minimize
@@ -22,5 +24,5 @@ parameters:
     
 # Ensure it runs using your virtual environment
 command:
-  - /home/lalit/my_venvs/rl_env/bin/python
+  - /home/jayagowtham/Documents/rl_assignments/DA6400_RL_PA1/.rl1_env/bin/python
   - ${program}  

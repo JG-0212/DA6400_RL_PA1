@@ -1,5 +1,7 @@
 program: mountaincar_qlearning_tune.py
 name: mountaincar_qlearning_tune
+project: DA6400_RL_PA1
+entity: me21b096-indian-institute-of-technology-madras
 method: bayes
 metric:
   goal: minimize
