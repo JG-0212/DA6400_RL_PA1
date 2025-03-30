@@ -51,7 +51,7 @@ Lalit Jayanti ME21B096
   - Make sure to select the correct kernel for your system from the top-right corner of your notebook, while running the above notebooks
 
 ## Results
-Following are a few visulaizations showing the performance of the SARSA and Q-Learning agents in the respective environments.
+Following are a few visualizations showing the performance of the SARSA and Q-Learning agents in the respective environments.
 
 ### CartPole-v1
  <table>
