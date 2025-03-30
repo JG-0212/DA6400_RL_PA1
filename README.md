@@ -32,6 +32,7 @@
     - ```wandb login```
     - Choose a configuration file from <i>/configs</i>
     - Change <i>project</i> and <i>entity</i> to your requirements
+    - Change interpreter path to match your python path
     ```
     python3 env_algorithm_tune.py
     # env       {cartpole, mountaincar, minigrid}
