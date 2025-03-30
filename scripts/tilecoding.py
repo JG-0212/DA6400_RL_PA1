@@ -6,8 +6,7 @@ import numpy as np
 class TileCoder:
 
     def __init__(self, num_tiles_per_feature,  num_tilings, lower_lim, upper_lim):
-        """
-        To tile-code continuous states into discrete states
+        """To tile-code continuous states into discrete states
 
         Args:
             - num_tiles_per_feature (ArrayLike): Number of divisions for discretizing each dimension.
@@ -48,7 +47,7 @@ class TileCoder:
             - x : Continuous state to be discretized.
 
         Returns:
-            - list : A list representing the discrete state.
+            - list : A list representing the discrete state hashes.
         """
         eps = 1e-10
         tile_coords = ((x - self.lower_lim) / (self.tile_width + eps)
@@ -62,11 +61,16 @@ class TileCoder:
 
     @property
     def total_tiles(self):
+        """A property that returns the total number of tiles 
+        basically the state space that Q Table has to manage
+        """
         return int(self.num_tilings*np.prod(self.num_tiles_per_feature))
     
 
 class QTable:
-
+    """Maintains a 2 dimesional Q table that is of the size (state_hashes,n_actions)
+    Designed for efficient retrieval and update of state action pairs
+    """
     def __init__(self, num_tiles_per_feature,  num_tilings, lower_lim, upper_lim, action_size):
 
         self.tile_coder = TileCoder(
@@ -106,6 +110,7 @@ class QTable:
 
 if __name__ == '__main__':
 
+    #testing out
     lower_lim = np.array([0, 0, 0])
     upper_lim = np.array([8, 4, 6])
     num_tilings = 1

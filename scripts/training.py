@@ -97,7 +97,9 @@ class trainingInspector:
         self.max_return = max_return
 
     def process_training_info(self, agent, scores, termination, truncation, episode_history):
-
+        """Processes training info. Returns a signal for succesful solving of the
+        environment and moving average of scores in the past 100 episodes.
+        """
         mean_scores = np.array(scores[max(0, len(scores)-100):]).mean()
         if mean_scores >= self.max_return:
             return False, {"Mean Score": mean_scores}
@@ -105,11 +107,17 @@ class trainingInspector:
 
 
 def moving_average(arr, n=100):
+    """The function returns a rolling average of  scores over a window
+    of size n
+    """
     csum = np.cumsum(arr)
     csum[n:] = csum[n:] - csum[:-n]
     return csum[n - 1:] / n
 
 def compute_decay(param_start, param_end, frac_episodes_to_decay, num_episodes, decay_type):
+    """The function identifies the decay parameter to decay a parameter from 
+    start to end in a fixed number of episodes.
+    """
     if decay_type == 'linear':
         param_decay = (param_start-param_end) / (frac_episodes_to_decay*num_episodes)
     elif decay_type == 'exponential':
@@ -120,6 +128,16 @@ def compute_decay(param_start, param_end, frac_episodes_to_decay, num_episodes, 
 
 def test_agent(env, agent, trainer, hyperparameter_list, num_experiments=5):
     """To test agents and compute metrics
+    Args:
+        - env: The environment for training.
+        - agent: An agent with `.step()`, `.act()`, and `.update_agent_parameters()`.
+        - trainer: Training function to satisfy a given environment's needs
+        - hyperparameter_list: Set of hyperparameters for which we wish to evaluate
+        - num_experiments: Number of realisations to determine expected performance
+    
+    Returns:
+        - a dictionary of metrics that comprises of mean and standard deviance of scores
+        and the rolling average all averaged over num_experiments
     """
 
     test_results = []
@@ -211,7 +229,9 @@ def test_agent(env, agent, trainer, hyperparameter_list, num_experiments=5):
     return test_results
 
 def plot_test_results(test_results, experiments):
-
+    """
+    Utility function to plot results
+    """
     plt.subplots(1, 2, figsize=(16, 4))
     plt.subplot(1,2,1)
     plt.grid()

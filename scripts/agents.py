@@ -3,7 +3,11 @@ import numpy as np
 
 from scripts.tilecoding import TileCoder, QTable
 
+
 def epsilon_greedy(action_values, action_size, eps):
+    '''The function returns an action choice based on the
+    epsilon-greedy policy derived from the action values
+    '''
     if np.random.uniform(0, 1) <= eps:
         action = np.random.choice(np.arange(action_size))
         return action
@@ -12,21 +16,23 @@ def epsilon_greedy(action_values, action_size, eps):
 
 
 def softmax(action_values, action_size, tau):
-    # Subtracting maximum Q value from all Q values while computing
-    # softmax to obtain higher numerical stability and prevent overflows.
+    '''The function returns an action choice based on the
+    softmax policy derived from the action values with 
+    temperature control
+    '''
     softmax_Q = np.exp((action_values - np.max(action_values))/tau)
     softmax_Q /= np.sum(softmax_Q)
-    # Select action based on the probability distribution obtained from softmax
     softmax_action = np.random.choice(a=np.arange(action_size),
                                       p=softmax_Q)
     return softmax_action
+
 
 class QLearningAgent:
 
     def __init__(self, state_space, action_space, seed):
         '''Hyperparameters for MDP'''
         self.GAMMA = 0.99            # discount factor
-        self.LR = 0.1              # learning rate
+        self.LR = 0.1                # learning rate
 
         '''Hyperparameters for discretizing states'''
         self.NUM_TILES_PER_FEATURE = None
@@ -48,6 +54,10 @@ class QLearningAgent:
         self.reset()
 
     def reset(self):
+        '''
+        Updates dependent hyper parameters once new hyper 
+        parameters are detected
+        '''
         self.tau = self.tau_start
 
         if self.NUM_TILES_PER_FEATURE is not None:
@@ -61,20 +71,26 @@ class QLearningAgent:
             )
 
     def update_hyperparameters(self, **kwargs):
-        '''To be changed only at the start of training'''
+        '''The function updates hyper parameters overriding the
+        default values
+        '''
         for key, value in kwargs.items():
             setattr(self, key, value)
 
         self.reset()
 
     def update_agent_parameters(self):
+        '''The function updates agent parameters overriding the
+        default values
+        '''
         if self.decay_type == 'linear':
             self.tau = max(self.tau_end, self.tau - self.tau_decay)
         elif self.decay_type == 'exponential':
             self.tau = max(self.tau_end, self.tau*self.tau_decay)
 
     def step(self, state, action, reward, next_state, done):
-
+        '''The function performs one update step of the SARSA algorithm
+        '''
         q_sa = self.q_table[state, action]
         q_next_sa = np.max(self.q_table[next_state])
 
@@ -83,6 +99,8 @@ class QLearningAgent:
         )
 
     def act(self, state):
+        '''The function chooses one action based on softmax policy
+        '''
         action_values = self.q_table[state]
         softmax_action = softmax(
             action_values=action_values,
@@ -119,6 +137,9 @@ class SARSAAgent:
         self.reset()
 
     def reset(self):
+        '''Updates dependent hyper parameters once new hyper 
+        parameters are detected
+        '''
         self.eps = self.eps_start
         self.next_action = np.random.choice(np.arange(self.action_size))
 
@@ -132,20 +153,26 @@ class SARSAAgent:
             )
 
     def update_hyperparameters(self, **kwargs):
-        '''To be changed only at the start of training'''
+        '''The function updates hyper parameters overriding the
+        default values
+        '''
         for key, value in kwargs.items():
             setattr(self, key, value)
 
         self.reset()
 
     def update_agent_parameters(self):
+        '''The function updates agent parameters overriding the
+        default values
+        '''
         if self.decay_type == 'linear':
             self.eps = max(self.eps_end, self.eps - self.eps_decay)
         elif self.decay_type == 'exponential':
             self.eps = max(self.eps_end, self.eps*self.eps_decay)
 
     def step(self, state, action, reward, next_state, done):
-        
+        '''The function performs one update step of the Q Learning algorithm
+        '''
         q_sa = self.q_table[state, action]
 
         next_action_values = self.q_table[next_state]
@@ -162,8 +189,9 @@ class SARSAAgent:
             q_sa + self.LR*(reward + self.GAMMA*q_next_sa - q_sa)
         )
 
-
     def act(self, state):
+        '''The function chooses one action based on epsilon-greedy policy
+        '''
         action_values = self.q_table[state]
         eps_action = self.next_action
         return eps_action, action_values
