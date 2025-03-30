@@ -29,6 +29,7 @@
 ## Basic usage
 - ```pip install -r requirements.txt```
 - To run experiments with different hyper-parameters
+    - ```wandb login```
     - Choose a configuration file from <i>/configs</i>
     - Change <i>project</i> and <i>entity</i> to your requirements
     ```
