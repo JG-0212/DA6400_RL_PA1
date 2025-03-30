@@ -1,7 +1,3 @@
-import os
-import yaml
-from dotenv import load_dotenv
-
 import gymnasium as gym
 from gymnasium.wrappers import RecordVideo
 import minigrid
@@ -85,14 +81,7 @@ def episode_trigger(x):
 
 
 def main():
-    load_dotenv('custom_wandb.env')
-
-    entity = os.getenv('ENTITY')
-    project = os.getenv('PROJECT')
-
-    with open('./configs/minigrid_qlearning.yaml') as file:
-        config = yaml.load(file, Loader=yaml.FullLoader)
-    run = wandb.init(entity=entity, project=project, config=config)
+    run = wandb.init()
 
     env = gym.make('MiniGrid-Dynamic-Obstacles-5x5-v0',
                    render_mode="rgb_array")

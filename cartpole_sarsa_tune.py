@@ -1,7 +1,4 @@
-import os
-import yaml
 from typing import Any, Callable
-from dotenv import load_dotenv
 
 import gymnasium as gym
 from gymnasium.wrappers import RecordVideo
@@ -40,14 +37,7 @@ def episode_trigger(x):
 
 
 def main():
-    load_dotenv('custom_wandb.env')
-
-    entity = os.getenv('ENTITY')
-    project = os.getenv('PROJECT')
-
-    with open('./configs/cartpole_sarsa.yaml') as file:
-        config = yaml.load(file, Loader=yaml.FullLoader)
-    run = wandb.init(entity=entity, project=project, config=config)
+    run = wandb.init()
 
     env = gym.make('CartPole-v1', render_mode="rgb_array")
     env = ObsWrapper(env,
